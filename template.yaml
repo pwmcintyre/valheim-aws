@@ -1,0 +1,279 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: Valheim
+
+
+Parameters:
+
+  Image:
+    Type: String
+    Default: lloesche/valheim-server
+
+  Name:
+    Type: String
+    Default: earth
+
+  StatusPort:
+    Type: Number
+    Default: 80
+
+
+Resources:
+
+  ############################
+  # Misc
+  ############################
+  Secret:
+    Type: AWS::SecretsManager::Secret
+    Properties:
+      Name: !Sub ${ AWS::StackName }
+      GenerateSecretString:
+        SecretStringTemplate: '{}'
+        GenerateStringKey: password
+        PasswordLength: 30
+        ExcludePunctuation: true
+
+  Bucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      VersioningConfiguration:
+        Status: Enabled
+      LifecycleConfiguration:
+        Rules:
+          - Status: Enabled
+            NoncurrentVersionExpirationInDays: 10
+
+  ############################
+  # Network
+  ############################
+  VPC:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: 10.0.0.0/16
+      EnableDnsHostnames: true
+
+  Subnet:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC
+      CidrBlock: 10.0.0.0/24
+      AvailabilityZone: !Sub ${ AWS::Region }a
+      MapPublicIpOnLaunch: true
+
+  # Allow outbound internet access
+  # This is required for various reasons - including:
+  # - access to secrets manager
+  # - access to download/update game files
+  InternetGateway:
+    Type: AWS::EC2::InternetGateway
+
+  AttachGateway:
+    Type: AWS::EC2::VPCGatewayAttachment
+    Properties:
+      VpcId: !Ref VPC
+      InternetGatewayId: !Ref InternetGateway
+
+  RouteTable:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref VPC
+
+  InternetRoute:
+    Type: AWS::EC2::Route
+    DependsOn: InternetGateway
+    Properties:
+      DestinationCidrBlock: 0.0.0.0/0
+      GatewayId: !Ref InternetGateway
+      RouteTableId: !Ref RouteTable
+
+  SubnetRouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref RouteTable
+      SubnetId: !Ref Subnet
+
+  ############################
+  # Hosting
+  ############################
+  Cluster:
+    Type: AWS::ECS::Cluster
+    Properties:
+      ClusterName: !Sub ${ AWS::StackName }
+      CapacityProviders:
+        - FARGATE_SPOT
+      DefaultCapacityProviderStrategy:
+        - CapacityProvider: FARGATE_SPOT
+          Weight: 1
+
+  ExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: ecs-tasks.amazonaws.com
+            Action: 'sts:AssumeRole'
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy
+      Policies:
+        - PolicyName: secrets
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - secretsmanager:GetSecretValue
+                  - secretsmanager:DescribeSecret
+                Resource: !Ref Secret
+
+  TaskRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: ecs-tasks.amazonaws.com
+            Action: 'sts:AssumeRole'
+      Policies:
+        - PolicyName: backups
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - s3:DeleteObject
+                  - s3:GetBucketLocation
+                  - s3:GetObject
+                  - s3:ListBucket
+                  - s3:PutObject
+                Resource:
+                  - !Sub arn:${ AWS::Partition }:s3:::${ Bucket }
+                  - !Sub arn:${ AWS::Partition }:s3:::${ Bucket }/*
+
+  LogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      RetentionInDays: 3
+
+  TaskDefinition:
+    Type: AWS::ECS::TaskDefinition
+    Properties:
+      Family: !Sub ${ AWS::StackName }
+      NetworkMode: awsvpc
+      RequiresCompatibilities:
+        - FARGATE
+      Cpu: 2048
+      Memory: 4GB
+      ExecutionRoleArn: !GetAtt ExecutionRole.Arn
+      TaskRoleArn: !GetAtt TaskRole.Arn
+      ContainerDefinitions:
+        - Name: !Sub ${ AWS::StackName }
+          Image: !Ref Image
+          PortMappings:
+            - ContainerPort: !Ref StatusPort
+              Protocol: tcp
+            - ContainerPort: 2456
+              Protocol: udp
+            - ContainerPort: 2457
+              Protocol: udp
+            - ContainerPort: 2458
+              Protocol: udp
+          Environment:
+            - Name: SERVER_NAME
+              Value: !Ref Name
+            - Name: SERVER_PORT
+              Value: 2456
+            - Name: WORLD_NAME
+              Value: !Ref Name
+            - Name: SERVER_PUBLIC
+              Value: 'true'
+            - Name: UPDATE_INTERVAL
+              Value: '900'
+            - Name: BACKUPS_INTERVAL
+              Value: '3600'
+            - Name: BACKUPS_DIRECTORY
+              Value: '/config/backups'
+            - Name: BACKUPS_MAX_AGE
+              Value: '3'
+            - Name: BACKUPS_DIRECTORY_PERMISSIONS
+              Value: '755'
+            - Name: BACKUPS_FILE_PERMISSIONS
+              Value: '644'
+            - Name: CONFIG_DIRECTORY_PERMISSIONS
+              Value: '755'
+            - Name: WORLDS_DIRECTORY_PERMISSIONS
+              Value: '755'
+            - Name: WORLDS_FILE_PERMISSIONS
+              Value: '644'
+            - Name: DNS_1
+              Value: '10.0.0.2'
+            - Name: DNS_2
+              Value: '10.0.0.2'
+            - Name: STEAMCMD_ARGS
+              Value: 'validate'
+            - Name: STATUS_HTTP_PORT
+              Value: !Ref StatusPort
+
+            ## HOOKS
+            # on cold-start: install pre-reqs
+            - Name: POST_BOOTSTRAP_HOOK
+              Value:
+                Fn::Join:
+                  - ' && '
+                  -
+                    # install awscli
+                    - curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+                    - unzip awscliv2.zip
+                    - ./aws/install
+                    - aws --version
+            # on startup: re-hydrate world
+            - Name: PRE_SERVER_RUN_HOOK
+              Value: !Sub aws s3 sync s3://${ Bucket }/worlds /config/worlds --delete
+            # on shutdown: de-hydrate world
+            - Name: POST_SERVER_SHUTDOWN_HOOK
+              Value: !Sub aws s3 sync /config/worlds s3://${ Bucket }/worlds --delete
+            # on backup: sync to s3
+            - Name: POST_BACKUP_HOOK
+              Value: !Sub aws s3 sync /config/backups s3://${ Bucket }/backups --delete
+          Secrets:
+            - Name: SERVER_PASS
+              ValueFrom: !Sub "${ Secret }:password::"
+          LogConfiguration:
+            LogDriver: awslogs
+            Options:
+              awslogs-region: !Ref AWS::Region
+              awslogs-group: !Ref LogGroup
+              awslogs-stream-prefix: ecs
+
+  SecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+        VpcId: !Ref VPC
+        GroupDescription: pwmcintyre
+        SecurityGroupIngress:
+        - IpProtocol: udp
+          FromPort: 2456
+          ToPort: 2458
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
+          FromPort: !Ref StatusPort
+          ToPort: !Ref StatusPort
+          CidrIp: 0.0.0.0/0
+
+  Service:
+    Type: AWS::ECS::Service
+    Properties:
+      ServiceName: !Sub ${ AWS::StackName }
+      Cluster: !Ref Cluster
+      TaskDefinition: !Ref TaskDefinition
+      DesiredCount: 1
+      LaunchType: FARGATE
+      EnableExecuteCommand: 'true'
+      NetworkConfiguration:
+        AwsvpcConfiguration:
+          AssignPublicIp: ENABLED
+          SecurityGroups:
+            - !GetAtt SecurityGroup.GroupId
+          Subnets:
+            - !Ref Subnet
