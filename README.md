@@ -1,4 +1,4 @@
-# Valhiem
+# Valheim
 
 An AWS Hosted Game Server
 
@@ -124,3 +124,12 @@ https://aws.amazon.com/secrets-manager/pricing/
 ```
 = $0.40 per month
 ```
+
+## Contribution
+
+I love PR's
+
+## References
+
+- https://github.com/rileydakota/valheim-ecs-fargate-cdk
+- https://github.com/lloesche/valheim-server-docker
