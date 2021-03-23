@@ -1,4 +1,5 @@
 AWSTemplateFormatVersion: 2010-09-09
+Transform: AWS::Serverless-2016-10-31
 Description: Valheim
 
 
@@ -277,3 +278,23 @@ Resources:
             - !GetAtt SecurityGroup.GroupId
           Subnets:
             - !Ref Subnet
+
+  ############################
+  # Functions
+  ############################
+  UpFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Runtime: nodejs14.x
+      Handler: index.handler
+      MemorySize: 128
+      Timeout: 60
+      CodeUri: ./scripts/start.js
+      Environment:
+        Variables:
+          CLUSTER: !Sub Service
+          SERVICE: !Ref Cluster
+          FAMILY: !Sub ${ AWS::StackName }
+      Policies:
+        - AWSSecretsManagerGetSecretValuePolicy:
+            SecretArn: !Ref Secret
