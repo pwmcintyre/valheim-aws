@@ -32,7 +32,7 @@ export STACK_NAME=pwmcintyre
 
 ```shell
 aws cloudformation deploy \
-  --stack-name   \
+  --stack-name ${STACK_NAME} \
   --capabilities CAPABILITY_IAM \
   --template-file ./template.yaml
 ```
