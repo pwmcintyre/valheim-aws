@@ -43,7 +43,7 @@ aws lambda invoke --function-name ${STACK_NAME}-start /dev/stdout
 
 NOTE: This is idempotent - your can re-run this to return the current IP and password.
 
-### Start
+### Stop
 
 The following stops the service.
 
