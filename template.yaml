@@ -288,75 +288,79 @@ Resources:
       Runtime: nodejs12.x
       Handler: index.handler
       MemorySize: 128
-      Timeout: 60
-      # CodeUri: ./scripts/start.js
+      Timeout: 300
       Environment:
         Variables:
           CLUSTER: !GetAtt Service.Name
           SERVICE: !Ref Cluster
           SECRET: !Sub ${ AWS::StackName }
       Policies:
-        - AWSSecretsManagerGetSecretValuePolicy:
-            SecretArn: !Ref Secret
         - Version: '2012-10-17'
           Statement:
-            - Effect: Allow
-              Action: ecs:UpdateService
-              Resource:
-                - !Ref Service # this doesn't seem to work ... it munges the arns
-                - !Sub arn:${ AWS::Partition }:ecs:${ AWS::Region }:${ AWS::AccountId }:service/${ Service.Name }
             - Effect: Allow
               Action: ec2:DescribeNetworkInterfaces
               Resource: '*'
             - Effect: Allow
+              Action: secretsmanager:GetSecretValue
+              Resource: !Ref Secret
+            - Effect: Allow
               Action:
-                - ecs:ListServices
+                - ecs:UpdateService
+                - ecs:DescribeServices
                 - ecs:ListTasks
+                - ecs:DescribeTasks
               Resource: '*'
-              # Condition:
-              #   StringEquals:
-              #     'ecs:cluster': !GetAtt Cluster.Arn
+              Condition:
+                StringEquals:
+                  'ecs:cluster': !GetAtt Cluster.Arn
       InlineCode: |
         const AWS = require('aws-sdk')
         const ecs = new AWS.ECS()
         const secrets = new AWS.SecretsManager()
         const ec2 = new AWS.EC2()
 
+        function log(message, context) {
+          console.log(JSON.stringify({ message, ...context }))
+        }
+
         // up handler
         exports.handler = async () => {
 
-            // get env vars
-            const cluster = process.env.CLUSTER
-            const service = process.env.SERVICE
-            const SecretId = process.env.SECRET
+          // get env vars
+          const cluster = process.env.CLUSTER
+          const service = process.env.SERVICE
+          const SecretId = process.env.SECRET
 
-            // start
-            await ecs.updateService({ cluster, service, desiredCount: 1 }).promise()
+          // start
+          await ecs.updateService({ cluster, service, desiredCount: 1 }).promise()
+          log("started", { cluster, service })
 
-            // wait until stable
-            await ecs.waitFor("servicesStable", { cluster, services: [service] }).promise()
-            
-            // get task
-            const task = await ecs.listTasks({ cluster, serviceName: service }).promise()
-                .then( res => res.taskArns[0] )
-            
-            // wait until task stable / get ENI
-            const eni = await ecs.waitFor("tasksRunning", { cluster, tasks: [task] }).promise()
-                .then( res => res.tasks[0].attachments[0].details.filter( a => a.name == "networkInterfaceId" )[0].value )
-            
-            // get PublicIP
-            const ip = await ec2.describeNetworkInterfaces({ NetworkInterfaceIds: [eni] }).promise()
-                .then( res => res.NetworkInterfaces[0].Association.PublicIp )
+          // wait until stable
+          await ecs.waitFor("servicesStable", { cluster, services: [service] }).promise()
+          log("service stable", { cluster, service })
+          
+          // get task
+          const task = await ecs.listTasks({ cluster, serviceName: service }).promise()
+            .then( res => res.taskArns[0] )
+          
+          // wait until task stable / get ENI
+          const eni = await ecs.waitFor("tasksRunning", { cluster, tasks: [task] }).promise()
+            .then( res => res.tasks[0].attachments[0].details.filter( a => a.name == "networkInterfaceId" )[0].value )
+          log("task stable", { cluster, service, task })
 
-            // get password
-            const password = await secrets.getSecretValue({ SecretId }).promise()
-                .then( res => {
-                    const value = res.SecretString
-                    const blob = JSON.parse( value )
-                    return blob["password"]
-                })
+          // get PublicIP
+          const ip = await ec2.describeNetworkInterfaces({ NetworkInterfaceIds: [eni] }).promise()
+            .then( res => res.NetworkInterfaces[0].Association.PublicIp )
 
-            // respond
-            return { message: "done" , ip, password }
+          // get password
+          const password = await secrets.getSecretValue({ SecretId }).promise()
+            .then( res => {
+              const value = res.SecretString
+              const blob = JSON.parse( value )
+              return blob["password"]
+            })
+
+          // respond
+          return { ip, password }
 
         }
