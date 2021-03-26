@@ -1,6 +1,6 @@
 # Valheim on AWS
 
-An AWS hosted Valheim game server - with a focus on low-cost
+An AWS hosted Valheim game server for about $0.12/hr (USD)
 
 ## Storage
 
@@ -52,6 +52,16 @@ NOTE: The lambda waits until the service is inactive, an error may mean it's sti
 ```shell
 aws lambda invoke --function-name ${STACK_NAME}-stop /dev/stdout
 ```
+
+### Offline backup
+
+You may want to take an occasional offline backup.
+
+```shell
+aws s3 cp --recursive s3://BUCKET ./data
+```
+
+NOTE: Due to the global nature of S3 bucket names, it does not use `${STACK_NAME}`, but the lambda returns the value.
 
 ## Pricing
 
