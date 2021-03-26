@@ -1,24 +1,20 @@
 # Valheim on AWS
 
-An AWS hosted Valheim game server
+An AWS hosted Valheim game server - with a focus on low-cost
 
-## Design
+## Storage
 
-Goal: simple / low-cost
+When not in use, game files live in version-enabled S3 is used for long-term storage.
 
-### Game Server
+Non-current versions are deleted after 10 days.
+
+## Game Server
 
 Runs on AWS ECS Fargate Spot instances using ephemeral storage.
 
 Game files are re/de-hydrated from S3 on startup/shutdown.
 
 If your spot instance is terminated — it takes about 3 minutes to restore (although I've never had this happen outside of testing), and unfortunately you get a new IP address. You shouldn't lose any data though, as the server performs a graceful shutdown and dehydrates your world onto S3.
-
-### Long-term storage
-
-Version-enabled S3 is used for long-term storage.
-
-Non-current versions are deleted after 10 days.
 
 ## Usage
 
@@ -37,51 +33,24 @@ aws cloudformation deploy \
   --template-file ./template.yaml
 ```
 
-### Get the Public IP
+### Start
 
-Unfortunately a 3 stop process (lambda anyone?)
+The following starts the service and returns the Public IP and Password.
 
 ```shell
-TASK_ARN=$(aws ecs list-tasks \
-  --cluster ${STACK_NAME} \
-  --family ${STACK_NAME} \
-    --query 'taskArns[0]' \
-    --output text)
-
-TASK_ENI_ID=$(aws ecs describe-tasks \
-  --cluster ${STACK_NAME} \
-  --task ${TASK_ARN} \
-  --query "tasks[0].attachments[0].details[?name=='networkInterfaceId'].value" \
-  --output text)
-
-aws ec2 describe-network-interfaces \
-  --network-interface-ids ${TASK_ENI_ID} \
-  --query 'NetworkInterfaces[0].Association.PublicIp' \
-  --output text
+aws lambda invoke --function-name ${STACK_NAME}-start /dev/stdout
 ```
 
-### Get the Password
+NOTE: This is idempotent - your can re-run this to return the current IP and password.
+
+### Start
+
+The following stops the service.
+
+NOTE: The lambda waits until the service is inactive, an error may mean it's still running.
 
 ```shell
-aws secretsmanager get-secret-value --secret-id ${STACK_NAME} --query SecretString --output text
-```
-
-### Scale-Down
-
-```shell
-aws ecs update-service \
-  --cluster ${STACK_NAME} \
-  --service ${STACK_NAME} \
-  --desired-count 0
-```
-
-### Scale-Up
-
-```shell
-aws ecs update-service \
-  --cluster ${STACK_NAME} \
-  --service ${STACK_NAME} \
-  --desired-count 1
+aws lambda invoke --function-name ${STACK_NAME}-stop /dev/stdout
 ```
 
 ## Pricing

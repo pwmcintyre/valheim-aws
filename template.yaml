@@ -282,9 +282,10 @@ Resources:
   ############################
   # Functions
   ############################
-  UpFunction:
+  StartFunction:
     Type: AWS::Serverless::Function
     Properties:
+      FunctionName: !Sub ${ AWS::StackName }-start
       Runtime: nodejs12.x
       Handler: index.handler
       MemorySize: 128
@@ -294,6 +295,7 @@ Resources:
           CLUSTER: !GetAtt Service.Name
           SERVICE: !Ref Cluster
           SECRET: !Sub ${ AWS::StackName }
+          BUCKET: !Ref Bucket
       Policies:
         - Version: '2012-10-17'
           Statement:
@@ -330,6 +332,7 @@ Resources:
           const cluster = process.env.CLUSTER
           const service = process.env.SERVICE
           const SecretId = process.env.SECRET
+          const bucket = process.env.BUCKET
 
           // start
           await ecs.updateService({ cluster, service, desiredCount: 1 }).promise()
@@ -361,6 +364,58 @@ Resources:
             })
 
           // respond
-          return { ip, password }
+          return { message: "started", ip, password, bucket }
+
+        }
+
+  StopFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub ${ AWS::StackName }-stop
+      Runtime: nodejs12.x
+      Handler: index.handler
+      MemorySize: 128
+      Timeout: 300
+      Environment:
+        Variables:
+          CLUSTER: !GetAtt Service.Name
+          SERVICE: !Ref Cluster
+          BUCKET: !Ref Bucket
+      Policies:
+        - Version: '2012-10-17'
+          Statement:
+            - Effect: Allow
+              Action:
+                - ecs:UpdateService
+                - ecs:DescribeServices
+              Resource: '*'
+              Condition:
+                StringEquals:
+                  'ecs:cluster': !GetAtt Cluster.Arn
+      InlineCode: |
+        const AWS = require('aws-sdk')
+        const ecs = new AWS.ECS()
+
+        function log(message, context) {
+          console.log(JSON.stringify({ message, ...context }))
+        }
+
+        // up handler
+        exports.handler = async () => {
+
+          // get env vars
+          const cluster = process.env.CLUSTER
+          const service = process.env.SERVICE
+
+          // stop
+          await ecs.updateService({ cluster, service, desiredCount: 0 }).promise()
+          log("stopping", { cluster, service })
+
+          // wait until inactive
+          await ecs.waitFor("servicesInactive", { cluster, services: [service] }).promise()
+          log("service inactive", { cluster, service })
+
+          // respond
+          return { message: "stopped", bucket }
 
         }
