@@ -59,6 +59,7 @@ You may want to take an occasional offline backup.
 
 ```shell
 aws s3 cp --recursive s3://BUCKET ./data
+aws s3 ls s3://pwmcintyre-bucket-1kk7s3r9sop8u/worlds
 ```
 
 NOTE: Due to the global nature of S3 bucket names, it does not use `${STACK_NAME}`, but the lambda returns the value.
@@ -102,6 +103,16 @@ https://aws.amazon.com/secrets-manager/pricing/
 
 ```
 = $0.40 per month
+```
+
+### API
+
+https://aws.amazon.com/api-gateway/pricing/
+
+- First 300 million	= $1.00 per million
+
+```
+= $0 per month
 ```
 
 ## Decision Log

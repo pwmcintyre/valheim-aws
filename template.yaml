@@ -388,6 +388,7 @@ Resources:
               Action:
                 - ecs:UpdateService
                 - ecs:DescribeServices
+                - ecs:ListTasks
               Resource: '*'
               Condition:
                 StringEquals:
@@ -406,16 +407,63 @@ Resources:
           // get env vars
           const cluster = process.env.CLUSTER
           const service = process.env.SERVICE
+          
+          // get task
+          const tasks = await ecs.listTasks({ cluster, serviceName: service }).promise()
+            .then( res => res.taskArns )
 
           // stop
           await ecs.updateService({ cluster, service, desiredCount: 0 }).promise()
           log("stopping", { cluster, service })
 
           // wait until inactive
-          await ecs.waitFor("servicesInactive", { cluster, services: [service] }).promise()
-          log("service inactive", { cluster, service })
+          await ecs.waitFor("tasksStopped", { cluster, tasks }).promise()
+          log("service stopped", { cluster, service })
 
           // respond
           return { message: "stopped", bucket }
+
+        }
+
+  API:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub ${ AWS::StackName }-api
+      Runtime: nodejs12.x
+      Handler: index.handler
+      MemorySize: 128
+      Timeout: 300
+      Events:
+        ApiEvent:
+          Type: HttpApi
+          Properties:
+            Path: /
+            Method: POST
+      InlineCode: |
+        function log(message, context) {
+          console.log(JSON.stringify({ message, ...context }))
+        }
+        exports.handler = async (event, context) => {
+          log("event", { event })
+          const body = JSON.parse(event.body)
+
+          // discord ping
+          if ( body.type == 1 ) {
+            log("ping", { body })
+            return { type: 1 }
+          }
+
+          log("default", { event, body })
+
+          // 
+          return {
+            "type": 4,
+            "data": {
+              "tts": false,
+              "content": "Congrats on sending your command!",
+              "embeds": [],
+              "allowed_mentions": { "parse": [] }
+            }
+          }
 
         }
