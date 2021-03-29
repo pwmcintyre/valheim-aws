@@ -1,2 +1,5 @@
 notes.md
 data/
+samconfig.toml
+node_modules
+.aws-sam

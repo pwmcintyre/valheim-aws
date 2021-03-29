@@ -13,6 +13,10 @@ Parameters:
     Type: String
     Default: earth
 
+  DiscordPublicKey:
+    Type: String
+    NoEcho: earth
+
   StatusPort:
     Type: Number
     Default: 80
@@ -430,7 +434,8 @@ Resources:
     Properties:
       FunctionName: !Sub ${ AWS::StackName }-api
       Runtime: nodejs12.x
-      Handler: index.handler
+      CodeUri: .
+      Handler: ./src/api/start/index.handler
       MemorySize: 128
       Timeout: 300
       Events:
@@ -439,31 +444,35 @@ Resources:
           Properties:
             Path: /
             Method: POST
-      InlineCode: |
-        function log(message, context) {
-          console.log(JSON.stringify({ message, ...context }))
-        }
-        exports.handler = async (event, context) => {
-          log("event", { event })
-          const body = JSON.parse(event.body)
+      Environment:
+        Variables:
+          CLUSTER: !Ref Cluster
+          SERVICE: !GetAtt Service.Name
+          BUCKET: !Ref Bucket
+          DISCORD_PUBLIC_KEY: !Ref DiscordPublicKey
 
-          // discord ping
-          if ( body.type == 1 ) {
-            log("ping", { body })
-            return { type: 1 }
-          }
 
-          log("default", { event, body })
+Outputs:
 
-          // 
-          return {
-            "type": 4,
-            "data": {
-              "tts": false,
-              "content": "Congrats on sending your command!",
-              "embeds": [],
-              "allowed_mentions": { "parse": [] }
-            }
-          }
+  Cluster:
+    Value: !Ref Cluster
+    Export:
+      Name: !Sub ${ AWS::StackName }-cluster-name
 
-        }
+  Service:
+    Value: !GetAtt Service.Name
+    Export:
+      Name: !Sub ${ AWS::StackName }-service-name
+
+  Secret:
+    Value: !Sub ${ AWS::StackName }
+    Export:
+      Name: !Sub ${ AWS::StackName }-secret-name
+
+  Bucket:
+    Value: !Ref Bucket
+    Export:
+      Name: !Sub ${ AWS::StackName }-bucket-name
+
+  API:
+    Value: !Sub "https://${ ServerlessHttpApi }.execute-api.${ AWS::Region }.amazonaws.com/"

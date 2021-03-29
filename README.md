@@ -33,6 +33,14 @@ aws cloudformation deploy \
   --template-file ./template.yaml
 ```
 
+#### Optional: Deploy discord addon
+
+Requires [AWS SAM CLI](https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/serverless-sam-cli-install.html)
+
+```shell
+sam build && sam deploy --guided
+```
+
 ### Start
 
 The following starts the service and returns the Public IP and Password.
@@ -59,10 +67,15 @@ You may want to take an occasional offline backup.
 
 ```shell
 aws s3 cp --recursive s3://BUCKET ./data
-aws s3 ls s3://pwmcintyre-bucket-1kk7s3r9sop8u/worlds
 ```
 
 NOTE: Due to the global nature of S3 bucket names, it does not use `${STACK_NAME}`, but the lambda returns the value.
+
+Local location:
+
+```
+C:\Users\Username\AppData\LocalLow\IronGate\Valheim\
+```
 
 ## Pricing
 
