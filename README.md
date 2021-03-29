@@ -1,6 +1,6 @@
 # Valheim on AWS
 
-An AWS hosted Valheim game server for about $0.12/hr (USD)
+An AWS hosted Valheim game server for about $0.04/hr (USD)
 
 ## Storage
 
@@ -83,15 +83,13 @@ C:\Users\Username\AppData\LocalLow\IronGate\Valheim\
 
 https://aws.amazon.com/fargate/pricing/
 
-- per vCPU per hour	$0.04856
-  - 2 CPU (2048) = 2 * $0.04856 = $0.09712
-- per GB per hour	$0.00532
-  - 4 Mem (4GB)  = 4 * $0.00532 = $0.02128
+- per vCPU per hour	$0.01482713
+- per GB per hour	$0.00162439
 
 ```
-= 0.1184 per hour
-= 2.8416 per day
-= 85.248 per month
+( 2 × 0.01482713 ) + ( 4 × 0.00162439 ) = $0.03615182 per hour
+= $0.86764368 per day
+= $26.39 per month
 ```
 
 *be sure to scale-down when not in use!*
