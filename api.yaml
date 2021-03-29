@@ -1,0 +1,46 @@
+AWSTemplateFormatVersion: 2010-09-09
+Transform: AWS::Serverless-2016-10-31
+Description: Valheim API
+
+
+Parameters:
+
+  BaseStack:
+    Type: String
+
+  DiscordPublicKey:
+    Type: String
+
+
+Resources:
+
+  API:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub ${ AWS::StackName }-api
+      Runtime: nodejs12.x
+      CodeUri: .
+      Handler: ./src/api/start/index.handler
+      MemorySize: 128
+      Timeout: 300
+      Events:
+        ApiEvent:
+          Type: HttpApi
+          Properties:
+            Path: /
+            Method: POST
+      Environment:
+        Variables:
+          CLUSTER:
+            Fn::ImportValue: !Sub ${ BaseStack }-cluster-name
+          SERVICE:
+            Fn::ImportValue: !Sub ${ BaseStack }-service-name
+          BUCKET:
+            Fn::ImportValue: !Sub ${ SourceStack }-bucket-name
+          DISCORD_PUBLIC_KEY: !Ref DiscordPublicKey
+
+Outputs:
+
+  API:
+    Description: "API Gateway endpoint URL for Prod stage for Hello World function"
+    Value: !Sub "https://${ServerlessHttpApi}.execute-api.${AWS::Region}.amazonaws.com/"

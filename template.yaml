@@ -474,5 +474,15 @@ Outputs:
     Export:
       Name: !Sub ${ AWS::StackName }-bucket-name
 
+  StopFunctionArn:
+    Value: !GetAtt StopFunction.Arn
+    Export:
+      Name: !Sub ${ AWS::StackName }-stop-arn
+
+  StartFunctionArn:
+    Value: !GetAtt StartFunction.Arn
+    Export:
+      Name: !Sub ${ AWS::StackName }-start-arn
+
   API:
     Value: !Sub "https://${ ServerlessHttpApi }.execute-api.${ AWS::Region }.amazonaws.com/"
