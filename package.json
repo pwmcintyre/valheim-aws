@@ -12,6 +12,8 @@
     "tweetnacl": "^1.0.3"
   },
   "devDependencies": {
-    "aws-sdk": "^2.874.0"
+    "aws-sdk": "^2.874.0",
+    "discord.js": "^12.5.3",
+    "node-fetch": "^2.6.1"
   }
 }
