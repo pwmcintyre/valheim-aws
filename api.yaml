@@ -20,7 +20,7 @@ Resources:
       FunctionName: !Sub ${ AWS::StackName }-api
       Runtime: nodejs12.x
       CodeUri: .
-      Handler: ./src/api/start/index.handler
+      Handler: ./src/api/index.handler
       MemorySize: 128
       Timeout: 300
       Events:

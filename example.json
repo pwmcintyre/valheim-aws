@@ -1,0 +1,43 @@
+{
+    "application_id": "825199647",
+    "channel_id": "825964165",
+    "data": {
+        "id": "828610416",
+        "name": "server",
+        "options": [
+            {
+                "name": "get",
+                "options": [
+                    {
+                        "name": "ip",
+                        "type": 1
+                    }
+                ],
+                "type": 2
+            }
+        ]
+    },
+    "guild_id": "82519886",
+    "id": "8286106115",
+    "member": {
+        "deaf": false,
+        "is_pending": false,
+        "joined_at": "2021-03-27T02:45:41.969000+00:00",
+        "mute": false,
+        "nick": null,
+        "pending": false,
+        "permissions": "8589934591",
+        "premium_since": null,
+        "roles": [],
+        "user": {
+            "avatar": "15afab3e4460d311461f",
+            "discriminator": "5158",
+            "id": "32161916881",
+            "public_flags": 0,
+            "username": "user1"
+        }
+    },
+    "token": "aW50ZXJhfoo",
+    "type": 2,
+    "version": 1
+}
