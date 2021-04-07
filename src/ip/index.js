@@ -1,4 +1,6 @@
-exports.getPublicIP = (cluster, service) => {
+import AWS from 'aws-sdk'
+
+export async function GetPublicIP (cluster = "", service = "", {ecs = new AWS.ECS(), ec2 = new AWS.EC2() } = {}) {
 
     // get task
     const task = await ecs
@@ -24,4 +26,3 @@ exports.getPublicIP = (cluster, service) => {
     return ip
 
 }
-
