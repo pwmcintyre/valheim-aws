@@ -3,7 +3,7 @@ import it from '../../test/it/index.js'
 import assert from 'assert'
 import { GetPublicIP } from './index.js'
 
-it("should return Public IP address of the services first task", () => {
+it("should return Public IP address of the services first task", async () => {
 
     // setup
     awsMock.mock('ECS', 'listTasks', { taskArns: ["fooarn"] })
@@ -29,10 +29,9 @@ it("should return Public IP address of the services first task", () => {
     const result = GetPublicIP("foo", "bar")
 
     // assert
-    assert.doesNotReject(result)
-    result.then( (ip) => {
+    await assert.doesNotReject(result.then( (ip) => {
         assert.deepStrictEqual(ip, "0.0.0.0")
-        awsMock.mock()
-    })
+        awsMock.restore()
+    }))
 
 })

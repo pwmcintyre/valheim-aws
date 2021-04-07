@@ -1,6 +1,6 @@
-export default function it (desc, fn) {
+export default async function it (desc, fn) {
     try {
-        fn()
+        await fn()
         console.log('\x1b[32m%s\x1b[0m', `\u2714 ${desc}`)
     } catch (error) {
         console.log('\n')
