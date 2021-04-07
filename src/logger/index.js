@@ -1,7 +1,11 @@
 // reference:
 // https://github.com/pwmcintyre/dexlog
 
-const JSONSerializer = (msg) => JSON.stringify(msg, getCircularReplacer())
+export default function log(message, context) {
+    console.log(JSONSerializer({ message, ...context }))
+}
+
+export const JSONSerializer = (msg) => JSON.stringify(msg, getCircularReplacer())
 
 // getCircularReplacer is Mozilla's suggested approach to dealing with circular references
 // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Errors/Cyclic_object_value
@@ -21,8 +25,4 @@ function getCircularReplacer() {
 function replaceErrors(_, value) {
     if (value instanceof Error) return value.toString()
     return value
-}
-
-exports.log = (message, context) => {
-    console.log(JSONSerializer({ message, ...context }))
 }
