@@ -2,6 +2,7 @@ const auth = require('../auth')
 const logger = require('../logger')
 const { getPublicIP } = require('../ip')
 const aws = require('aws-sdk')
+import { GetPublicIP } from '../ip/index.js'
 const lambda = new aws.Lambda()
 
 exports.handler = async (event, context) => {
@@ -55,14 +56,14 @@ function command (request) {
     }
 }
 
-function get(request) {
+function get(request, getFn = GetPublicIP) {
 
     logger.log("get", { request })
 
     const cluster = process.env.CLUSTER
     const service = process.env.SERVICE
 
-    const ip = getPublicIP(cluster, service)
+    const ip = getFn(cluster, service)
 
     return {
         "type": 4,
