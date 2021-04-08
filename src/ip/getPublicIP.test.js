@@ -1,9 +1,12 @@
+import test from 'ava'
 import awsMock from 'aws-sdk-mock'
-import it from '../../test/it/index.js'
-import assert from 'assert'
-import { GetPublicIP } from './index.js'
+import { GetPublicIP } from './getPublicIP.js'
 
-it("should return Public IP address of the services first task", async () => {
+test.after('restore aws mocks', t => {
+	awsMock.restore()
+})
+
+test('resolves with public ip address', async t => {
 
     // setup
     awsMock.mock('ECS', 'listTasks', { taskArns: ["fooarn"] })
@@ -29,9 +32,6 @@ it("should return Public IP address of the services first task", async () => {
     const result = GetPublicIP("foo", "bar")
 
     // assert
-    await assert.doesNotReject(result.then( (ip) => {
-        assert.deepStrictEqual(ip, "0.0.0.0")
-        awsMock.restore()
-    }))
+	t.is(await result, "0.0.0.0")
 
 })

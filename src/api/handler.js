@@ -1,8 +1,8 @@
 const auth = require('../auth')
-const logger = require('../logger')
-const { getPublicIP } = require('../ip')
+const logger = require('../logger/log')
+const { getPublicIP } = require('../ip/getPublicIP')
 const aws = require('aws-sdk')
-import { GetPublicIP } from '../ip/index.js'
+import { GetPublicIP } from '../ip/getPublicIP.js'
 const lambda = new aws.Lambda()
 
 exports.handler = async (event, context) => {

@@ -4,19 +4,20 @@
   "type": "module",
   "description": "An AWS hosted Valheim game server",
   "scripts": {
-    "test": "node ./test/run.js"
+    "test": "ava"
   },
   "files": [
     "src"
   ],
   "dependencies": {
+    "dexlog": "^1.0.8",
     "tweetnacl": "^1.0.3"
   },
   "devDependencies": {
+    "ava": "^3.15.0",
     "aws-sdk": "^2.874.0",
     "aws-sdk-mock": "^5.1.0",
     "discord.js": "^12.5.3",
-    "glob": "^7.1.6",
     "node-fetch": "^2.6.1"
   }
 }

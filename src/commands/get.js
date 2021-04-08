@@ -1,10 +1,10 @@
-import log from '../../logger/index.js'
-import { GetPublicIP } from '../../ip/index.js'
+import { StandardLogger } from 'dexlog'
+import { GetPublicIP } from '../ip/getPublicIP.js'
 
-export async function Get(request, getFn = GetPublicIP) {
+export async function Get(request, {getFn = GetPublicIP, logger = StandardLogger } = {}) {
 
-    log("get", { request })
-
+    logger.debug("Get Command", { request })
+    
     const cluster = process.env.CLUSTER
     const service = process.env.SERVICE
 

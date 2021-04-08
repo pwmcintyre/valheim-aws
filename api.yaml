@@ -31,6 +31,7 @@ Resources:
             Method: POST
       Environment:
         Variables:
+          LOG_LEVEL: debug
           CLUSTER:
             Fn::ImportValue: !Sub ${ BaseStack }-cluster-name
           SERVICE:
