@@ -20,7 +20,7 @@ Resources:
       FunctionName: !Sub ${ AWS::StackName }-api
       Runtime: nodejs12.x
       CodeUri: .
-      Handler: ./src/api/index.handler
+      Handler: ./src/api/handler.handler
       MemorySize: 128
       Timeout: 300
       Events:
@@ -29,6 +29,26 @@ Resources:
           Properties:
             Path: /
             Method: POST
+      Policies:
+        - Version: '2012-10-17'
+          Statement:
+            - Effect: Allow
+              Action: ec2:DescribeNetworkInterfaces
+              Resource: '*'
+            - Effect: Allow
+              Action: secretsmanager:GetSecretValue
+              Resource: !Ref Secret
+            - Effect: Allow
+              Action:
+                - ecs:*
+                - ecs:UpdateService
+                - ecs:DescribeServices
+                - ecs:ListTasks
+                - ecs:DescribeTasks
+              Resource: '*'
+              Condition:
+                StringEquals:
+                  'ecs:cluster': !GetAtt Cluster.Arn
       Environment:
         Variables:
           LOG_LEVEL: debug
