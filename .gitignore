@@ -3,3 +3,4 @@ data/
 samconfig.toml
 node_modules
 .aws-sam
+dist
