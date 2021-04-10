@@ -1,14 +1,13 @@
 {
   "name": "valheim-aws",
   "version": "1.0.0",
-  "type": "module",
   "description": "An AWS hosted Valheim game server",
   "scripts": {
     "build": "tsc",
     "test": "ava --timeout=60000"
   },
   "files": [
-    "src"
+    "dist"
   ],
   "dependencies": {
     "dexlog": "^1.0.8",
@@ -26,11 +25,11 @@
     "typescript": "^4.2.4"
   },
   "ava": {
-		"extensions": [
-			"ts"
-		],
-		"require": [
-			"ts-node/register"
-		]
+    "extensions": [
+      "ts"
+    ],
+    "require": [
+      "ts-node/register"
+    ]
   }
 }
