@@ -3,9 +3,6 @@ import * as commands from '../commands/commands'
 import { Context } from 'aws-lambda'
 import fetch from 'node-fetch'
 
-// TODO: this is not required; the same as event.application_id
-const application_id = process.env.DISCORD_APPLICATION_ID
-
 // waiting for new release ... this type is only on master :(
 // https://github.com/discordjs/discord.js/blob/master/typings/index.d.ts#L2259
 // import { APIRawMessage } from 'discord.js'
@@ -29,7 +26,7 @@ export async function handler (event: any, lambdacontext: Context) {
         // POST /webhooks/<application_id>/<interaction_token> to send a new followup message
         // PATCH /webhooks/<application_id>/<interaction_token>/messages/<message_id> to edit a message sent with that token
         // const url = `https://discord.com/api/v8/interactions/${ event.id }/${ event.token }/callback`
-        const url = `https://discord.com/webhooks/${ application_id }/${ event.token }/messages/@original`
+        const url = `https://discord.com/api/webhooks/${ event.application_id }/${ event.token }/messages/@original`
         const body = JSON.stringify(response)
         try {
             const result = await fetch(url, {

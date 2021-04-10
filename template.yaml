@@ -16,9 +16,6 @@ Parameters:
   DiscordPublicKey:
     Type: String
 
-  DiscordApplicationID:
-    Type: String
-
   StatusPort:
     Type: Number
     Default: 80
@@ -438,7 +435,7 @@ Resources:
       Runtime: nodejs14.x
       CodeUri: .
       Handler: ./dist/api/handler.handler
-      MemorySize: 128
+      MemorySize: 256
       Timeout: 10
       Events:
         ApiEvent:
@@ -465,7 +462,7 @@ Resources:
       Runtime: nodejs14.x
       CodeUri: .
       Handler: ./dist/commands/handler.handler
-      MemorySize: 128
+      MemorySize: 256
       Timeout: 300
       Policies:
         - Version: '2012-10-17'
@@ -493,7 +490,6 @@ Resources:
           CLUSTER: !Ref Cluster
           SERVICE: !GetAtt Service.Name
           BUCKET: !Ref Bucket
-          DISCORD_APPLICATION_ID: !Ref DiscordApplicationID
 
 
 Outputs:

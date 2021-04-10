@@ -1,24 +1,18 @@
 {
-    "application_id": "825199647",
-    "channel_id": "825964165",
+    "application_id": "825199647168659467",
+    "channel_id": "825964165071896626",
     "data": {
-        "id": "828610416",
+        "id": "828604851247775785",
         "name": "server",
         "options": [
             {
-                "name": "get",
-                "options": [
-                    {
-                        "name": "ip",
-                        "type": 1
-                    }
-                ],
-                "type": 2
+                "name": "start",
+                "type": 1
             }
         ]
     },
-    "guild_id": "82519886",
-    "id": "8286106115",
+    "guild_id": "825198869591621642",
+    "id": "830406736572579849",
     "member": {
         "deaf": false,
         "is_pending": false,
@@ -30,14 +24,14 @@
         "premium_since": null,
         "roles": [],
         "user": {
-            "avatar": "15afab3e4460d311461f",
+            "avatar": "15afab3e4460d311461f8c3f7efb12dc",
             "discriminator": "5158",
-            "id": "32161916881",
+            "id": "321619168833044481",
             "public_flags": 0,
-            "username": "user1"
+            "username": "spudweizer"
         }
     },
-    "token": "aW50ZXJhfoo",
+    "token": "aW50ZXJhY3Rpb246ODMwNDA2NzM2NTcyNTc5ODQ5OlZDUkNqSzdmSFZ0aktiY2FLVVA1ZUphZk1qZERDaFBSamV4TERJcnhPYW51TWNsWkhSNFMzUzEwTXVYbFl6S05PeW5rT3AwTGMzODFPYkFTUlZmYkFQSHZPYk1kQTRqSTNCMGdhejFDWWNTV1JGR0NxUlZ3bVRhb09OeVl2ekcy",
     "type": 2,
     "version": 1
 }

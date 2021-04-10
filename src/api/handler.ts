@@ -23,6 +23,7 @@ export async function handler (event: any, lambdacontext: Context) {
         logger.info("unverified", { signature, timestamp, body: event.body })
         return { statusCode: 401 }
     }
+    logger.debug("verified")
 
     // handle discord ping
     const body = JSON.parse(event.body)
@@ -35,6 +36,7 @@ export async function handler (event: any, lambdacontext: Context) {
     if ( body.type == 2 && body.data.name === 'server' ) {
         logger.info("cmd: server")
         await Invoke(body)
+        logger.info("invoked")
         return {
             "type": 4,
             "data": {
