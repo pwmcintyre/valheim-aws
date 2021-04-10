@@ -17,10 +17,7 @@ export async function Start(request: any, {
     return {
         "type": 4,
         "data": {
-            "tts": false,
             "content": `${ ip }`,
-            "embeds": [],
-            "allowed_mentions": { "parse": [] }
         }
     } as any
 }
@@ -40,10 +37,7 @@ export async function Stop(request: any, {
     return {
         "type": 4,
         "data": {
-            "tts": false,
             "content": `it is done`,
-            "embeds": [],
-            "allowed_mentions": { "parse": [] }
         }
     } as any
 }
@@ -63,10 +57,7 @@ export async function Get(request: any, {
     return {
         "type": 4,
         "data": {
-            "tts": false,
             "content": `${ ip }`,
-            "embeds": [],
-            "allowed_mentions": { "parse": [] }
         }
     } as any
 

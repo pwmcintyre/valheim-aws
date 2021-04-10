@@ -15,7 +15,9 @@ Parameters:
 
   DiscordPublicKey:
     Type: String
-    NoEcho: earth
+
+  DiscordApplicationID:
+    Type: String
 
   StatusPort:
     Type: Number
@@ -437,13 +439,34 @@ Resources:
       CodeUri: .
       Handler: ./dist/api/handler.handler
       MemorySize: 128
-      Timeout: 300
+      Timeout: 10
       Events:
         ApiEvent:
           Type: HttpApi
           Properties:
             Path: /
             Method: POST
+      Policies:
+        - Version: '2012-10-17'
+          Statement:
+            - Effect: Allow
+              Action: lambda:InvokeFunction
+              Resource: !GetAtt Commands.Arn
+      Environment:
+        Variables:
+          LOG_LEVEL: DEBUG
+          DISCORD_PUBLIC_KEY: !Ref DiscordPublicKey
+          COMMAND_FUNCTION_ARN: !GetAtt Commands.Arn
+
+  Commands:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub ${ AWS::StackName }-commands
+      Runtime: nodejs14.x
+      CodeUri: .
+      Handler: ./dist/commands/handler.handler
+      MemorySize: 128
+      Timeout: 300
       Policies:
         - Version: '2012-10-17'
           Statement:
@@ -466,10 +489,11 @@ Resources:
                   'ecs:cluster': !GetAtt Cluster.Arn
       Environment:
         Variables:
+          LOG_LEVEL: DEBUG
           CLUSTER: !Ref Cluster
           SERVICE: !GetAtt Service.Name
           BUCKET: !Ref Bucket
-          DISCORD_PUBLIC_KEY: !Ref DiscordPublicKey
+          DISCORD_APPLICATION_ID: !Ref DiscordApplicationID
 
 
 Outputs:

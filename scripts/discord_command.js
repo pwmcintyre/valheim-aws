@@ -17,9 +17,9 @@ async function main (api, config, token) {
 }
 
 const token = process.env.DISCORD_TOKEN
-const bot = process.env.DISCORD_BOT
+const application_id = process.env.DISCORD_APPLICATION_ID
 const guild = process.env.DISCORD_GUILD
-const api = `https://discord.com/api/v8/applications/${ bot }/guilds/${ guild }/commands`
+const api = `https://discord.com/api/v8/applications/${ application_id }/guilds/${ guild }/commands`
 
 const config = {
     "name": "server",

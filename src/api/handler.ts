@@ -1,7 +1,8 @@
 import { StandardLogger } from 'dexlog'
-import { IsValidDiscordSignature } from './IsValidDiscordSignature'
+import { IsValidDiscordSignature } from '../auth/IsValidDiscordSignature'
 import * as commands from '../commands/commands'
 import { Context } from 'aws-lambda'
+import { Invoke } from '../commands/invoke'
 
 // waiting for new release ... this type is only on master :(
 // https://github.com/discordjs/discord.js/blob/master/typings/index.d.ts#L2259
@@ -33,40 +34,19 @@ export async function handler (event: any, lambdacontext: Context) {
     // handle server commands
     if ( body.type == 2 && body.data.name === 'server' ) {
         logger.info("cmd: server")
-        return command(body)
+        await Invoke(body)
+        return {
+            "type": 4,
+            "data": {
+                "tts": false,
+                "content": "working ...",
+                "embeds": [],
+                "allowed_mentions": { "parse": [] }
+            }
+        } as any
     }
 
     logger.info("unknown")
     return { statusCode: 404 }
-
-}
-
-function command (request: any /* TODO: APIRawMessage  */ ) {
-
-    const subcommand = request.data.options[0].name
-
-    switch (subcommand) {
-
-        case 'start':
-            return commands.Start(request)
-
-        case 'stop':
-            return commands.Stop(request)
-
-        case 'get':
-            return commands.Get(request)
-
-        default:
-            return {
-                "type": 4,
-                "data": {
-                    "tts": false,
-                    "content": "unknown command",
-                    "embeds": [],
-                    "allowed_mentions": { "parse": [] }
-                }
-            } as any // TODO: what is this type??
-
-    }
 
 }
