@@ -38,7 +38,7 @@ export async function handler (event: any, lambdacontext: Context) {
         await Invoke(body)
         logger.info("invoked")
         return {
-            "type": 4,
+            "type": 5,
             "data": {
                 "tts": false,
                 "content": "working ...",

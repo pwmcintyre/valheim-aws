@@ -5,7 +5,7 @@ import { Start as StartServer } from '../backend/Start'
 export async function Start(request: any, {
         start = StartServer,
         logger = StandardLogger,
-    } = {}) {
+    } = {}): Promise<any> {
 
     logger.debug("CMD: Start", { request })
     
@@ -14,18 +14,13 @@ export async function Start(request: any, {
 
     const ip = await start(cluster, service)
 
-    return {
-        "type": 4,
-        "data": {
-            "content": `${ ip }`,
-        }
-    } as any
+    return { "content": `${ ip }` } as any
 }
 
 export async function Stop(request: any, {
         stop = (..._: any) => { throw new Error("not implemented") },
         logger = StandardLogger,
-    } = {}) {
+    } = {}): Promise<any> {
 
     logger.debug("CMD: Stop", { request })
     
@@ -34,18 +29,13 @@ export async function Stop(request: any, {
 
     await stop(cluster, service)
 
-    return {
-        "type": 4,
-        "data": {
-            "content": `it is done`,
-        }
-    } as any
+    return { "content": `it is done` } as any
 }
 
 export async function Get(request: any, {
         getIP = GetPublicIP,
         logger = StandardLogger,
-    } = {}) {
+    } = {}): Promise<any> {
 
     logger.debug("CMD: Get", { request })
     
@@ -54,11 +44,6 @@ export async function Get(request: any, {
 
     const ip = await getIP(cluster, service)
 
-    return {
-        "type": 4,
-        "data": {
-            "content": `${ ip }`,
-        }
-    } as any
+    return { "content": `${ ip }` } as any
 
 }

@@ -17,7 +17,7 @@ export async function handler (event: any, lambdacontext: Context) {
     // handle server commands
     if ( event.type == 2 && event.data.name === 'server' ) {
         logger.info("cmd: server")
-        const response = command(event)
+        const command_response = await command(event)
 
         // respond
         // https://discord.com/developers/docs/interactions/slash-commands#followup-messages
@@ -27,13 +27,14 @@ export async function handler (event: any, lambdacontext: Context) {
         // PATCH /webhooks/<application_id>/<interaction_token>/messages/<message_id> to edit a message sent with that token
         // const url = `https://discord.com/api/v8/interactions/${ event.id }/${ event.token }/callback`
         const url = `https://discord.com/api/webhooks/${ event.application_id }/${ event.token }/messages/@original`
-        const body = JSON.stringify(response)
+        const body = JSON.stringify(command_response)
         try {
             const result = await fetch(url, {
                 method: 'patch',
-                body:    JSON.stringify(response),
+                body:    body,
                 headers: { 'Content-Type': 'application/json' },
             })
+            logger.debug("success", { result, url, body, command_response })
             logger.info("success", { result: result.json() })
             return
         } catch (error: unknown) {
@@ -63,12 +64,7 @@ function command (request: any /* TODO: APIRawMessage  */ ) {
             return commands.Get(request)
 
         default:
-            return {
-                "type": 4,
-                "data": {
-                    "content": "unknown command",
-                }
-            } as any // TODO: what is this type??
+            return { "content": "command not implemented" } as any // TODO: what is this type??
 
     }
 
