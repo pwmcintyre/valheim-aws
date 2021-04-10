@@ -1,7 +1,7 @@
-import AWS from 'aws-sdk'
+import { SecretsManager } from 'aws-sdk'
 
-export function Start (SecretId = "", {
-        secrets = new AWS.SecretsManager(),
+export async function Start (SecretId: string, {
+        secrets = new SecretsManager(),
     } = {}) {
 
     // get password

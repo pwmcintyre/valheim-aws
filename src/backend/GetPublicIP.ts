@@ -1,6 +1,9 @@
-import AWS from 'aws-sdk'
+import { ECS, EC2 } from 'aws-sdk'
 
-export async function GetPublicIP (cluster = "", service = "", {ecs = new AWS.ECS(), ec2 = new AWS.EC2() } = {}) {
+export async function GetPublicIP (cluster: string, service: string, {
+    ecs = new ECS(),
+    ec2 = new EC2(),
+} = {}) {
 
     // get task
     const task = await ecs

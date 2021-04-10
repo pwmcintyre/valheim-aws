@@ -1,10 +1,10 @@
-import AWS from 'aws-sdk'
+import { ECS, EC2 } from 'aws-sdk'
 import { StandardLogger } from 'dexlog'
 
 // up handler
-export async function Start (cluster = "", service = "", {
-        ecs = new AWS.ECS(),
-        ec2 = new AWS.EC2(),
+export async function Start (cluster: string, service: string, {
+        ecs = new ECS(),
+        ec2 = new EC2(),
         logger = StandardLogger,
     } = {}) {
 

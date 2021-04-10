@@ -1,7 +1,7 @@
 // https://discord.com/developers/docs/interactions/slash-commands#security-and-authorization
-import nacl from 'tweetnacl'
+import nacl = require('tweetnacl')
 
-export function IsValidDiscordSignature (key, signature, timestamp, body) {
+export function IsValidDiscordSignature (key: string, signature: string, timestamp: string, body: string) {
 
     return nacl.sign.detached.verify(
         Buffer.from(timestamp + body),

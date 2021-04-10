@@ -1,6 +1,6 @@
 import test from 'ava'
-import dexlog from 'dexlog'
-import * as commands from './commands.js'
+import * as dexlog from 'dexlog'
+import * as commands from './commands'
 
 test('resolves with discord message with public ip address', async t => {
 

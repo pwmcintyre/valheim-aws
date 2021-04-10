@@ -1,16 +1,16 @@
 import test from 'ava'
-import awsMock from 'aws-sdk-mock'
-import { GetPublicIP } from './GetPublicIP.js'
+import * as aws from 'aws-sdk-mock'
+import { GetPublicIP } from './GetPublicIP'
 
 test.after('restore aws mocks', t => {
-	awsMock.restore()
+	aws.restore()
 })
 
 test('resolves with public ip address', async t => {
 
     // setup
-    awsMock.mock('ECS', 'listTasks', { taskArns: ["fooarn"] })
-    awsMock.mock('ECS', 'waitFor', {
+    aws.mock('ECS', 'listTasks', { taskArns: ["fooarn"] })
+    aws.mock('ECS', 'waitFor', {
         tasks: [{
             attachments: [{
                 details: [{
@@ -20,7 +20,7 @@ test('resolves with public ip address', async t => {
             }],
         }],
     })
-    awsMock.mock('EC2', 'describeNetworkInterfaces', {
+    aws.mock('EC2', 'describeNetworkInterfaces', {
         NetworkInterfaces: [{
             Association: {
                 PublicIp: "0.0.0.0",

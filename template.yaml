@@ -435,7 +435,7 @@ Resources:
       FunctionName: !Sub ${ AWS::StackName }-api
       Runtime: nodejs14.x
       CodeUri: .
-      Handler: ./src/api/handler.handler
+      Handler: ./dist/api/handler.handler
       MemorySize: 128
       Timeout: 300
       Events:

@@ -1,8 +1,8 @@
 import { StandardLogger } from 'dexlog'
-import { GetPublicIP } from '../backend/GetPublicIP.js'
-import { Start as StartServer } from '../backend/Start.js'
+import { GetPublicIP } from '../backend/GetPublicIP'
+import { Start as StartServer } from '../backend/Start'
 
-export async function Start(request, {
+export async function Start(request: any, {
         start = StartServer,
         logger = StandardLogger,
     } = {}) {
@@ -22,11 +22,11 @@ export async function Start(request, {
             "embeds": [],
             "allowed_mentions": { "parse": [] }
         }
-    }
+    } as any
 }
 
-export async function Stop(request, {
-        stop = () => { throw new Error("not implemented") },
+export async function Stop(request: any, {
+        stop = (..._: any) => { throw new Error("not implemented") },
         logger = StandardLogger,
     } = {}) {
 
@@ -45,10 +45,10 @@ export async function Stop(request, {
             "embeds": [],
             "allowed_mentions": { "parse": [] }
         }
-    }
+    } as any
 }
 
-export async function Get(request, {
+export async function Get(request: any, {
         getIP = GetPublicIP,
         logger = StandardLogger,
     } = {}) {
@@ -68,6 +68,6 @@ export async function Get(request, {
             "embeds": [],
             "allowed_mentions": { "parse": [] }
         }
-    }
+    } as any
 
 }

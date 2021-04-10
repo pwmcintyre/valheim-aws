@@ -1,11 +1,17 @@
 import { StandardLogger } from 'dexlog'
-import IsValidDiscordSignature from './IsValidDiscordSignature.js'
-import * as commands from '../commands/commands.js'
+import { IsValidDiscordSignature } from './IsValidDiscordSignature'
+import * as commands from '../commands/commands'
+import { Context } from 'aws-lambda'
 
-exports.handler = async function (event, context) {
+// waiting for new release ... this type is only on master :(
+// https://github.com/discordjs/discord.js/blob/master/typings/index.d.ts#L2259
+// import { APIRawMessage } from 'discord.js'
+// import * as discord from 'discord.js'
 
-    context = { awsRequestId: context.awsRequestId }
-    const logger = StandardLogger.With({ context })
+export async function handler (event: any, lambdacontext: Context) {
+
+    const context = { awsRequestId: lambdacontext.awsRequestId }
+    const logger = StandardLogger.with({ context })
     logger.debug("api handler", { event })
 
     // verify signature
@@ -13,7 +19,7 @@ exports.handler = async function (event, context) {
     const signature = event.headers['x-signature-ed25519']
     const timestamp = event.headers['x-signature-timestamp']
     if ( !IsValidDiscordSignature(key, signature, timestamp, event.body) ) {
-        logger.info("unverified", { signature, timestamp, body })
+        logger.info("unverified", { signature, timestamp, body: event.body })
         return { statusCode: 401 }
     }
 
@@ -35,20 +41,20 @@ exports.handler = async function (event, context) {
 
 }
 
-function command (request) {
+function command (request: any /* TODO: APIRawMessage  */ ) {
 
     const subcommand = request.data.options[0].name
 
     switch (subcommand) {
 
         case 'start':
-            return commands.Start(req)
+            return commands.Start(request)
 
         case 'stop':
-            return commands.Stop(req)
+            return commands.Stop(request)
 
         case 'get':
-            return commands.Get(req)
+            return commands.Get(request)
 
         default:
             return {
@@ -59,7 +65,7 @@ function command (request) {
                     "embeds": [],
                     "allowed_mentions": { "parse": [] }
                 }
-            }
+            } as any // TODO: what is this type??
 
     }
 
