@@ -1,7 +1,6 @@
 import { ECS, EC2 } from 'aws-sdk'
 import { StandardLogger } from 'dexlog'
 
-// up handler
 export async function Start (cluster: string, service: string, {
         ecs = new ECS(),
         ec2 = new EC2(),

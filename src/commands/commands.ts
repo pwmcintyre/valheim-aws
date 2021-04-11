@@ -1,6 +1,7 @@
 import { StandardLogger } from 'dexlog'
 import { GetPublicIP } from '../backend/GetPublicIP'
 import { Start as StartServer } from '../backend/Start'
+import { Stop as StopServer } from '../backend/Stop'
 
 export async function Start(request: any, {
         start = StartServer,
@@ -18,7 +19,7 @@ export async function Start(request: any, {
 }
 
 export async function Stop(request: any, {
-        stop = (..._: any) => { throw new Error("not implemented") },
+        stop = StopServer,
         logger = StandardLogger,
     } = {}): Promise<any> {
 
