@@ -6,4 +6,4 @@ test:
 	npm run test
 
 deploy:
-	sam deploy
+	sam deploy --guided

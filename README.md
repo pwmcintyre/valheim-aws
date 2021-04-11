@@ -1,4 +1,4 @@
-# Valheim on AWS
+# Valheim on AWS (With Discord)
 
 An AWS hosted Valheim game server for about $0.04/hr (USD)
 
@@ -18,28 +18,45 @@ If your spot instance is terminated — it takes about 3 minutes to restore (al
 
 ## Usage
 
-For simplicity, everything assumes `STACK_NAME` is a static value - update as desired:
+Requires:
+- [AWS SAM CLI](https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/serverless-sam-cli-install.html)
+- [NodeJS](https://nodejs.org/en/) (recommended: use [nvm](https://github.com/nvm-sh/nvm#installing-and-updating))
+- Discord
+
+### 1 - Create a webhook
+
+This is for the server to push outbound notifications.
+
+1. Right click your discord service icon
+2. Click "Server Settings" > "Integrations"
+3. "View Webhooks" > "New Webhook"
+4. Click "Copy Webhook URL" (use this when deploying)
+
+### 2 - Create a bot
+
+1. Go to https://discord.com/developers/applications
+2. Click "New Application"
+3. Click "Copy" on the public key (use this when deploying)
+
+### 3 - Deploy
+
+NOTE: You need an AWS account with appropriate authentication.
 
 ```shell
-export STACK_NAME=pwmcintyre
+make build deploy
 ```
 
-### Deploy
+Follow the prompts.
 
-```shell
-aws cloudformation deploy \
-  --stack-name ${STACK_NAME} \
-  --capabilities CAPABILITY_IAM \
-  --template-file ./template.yaml
-```
+### 4 - Set Discord bot interations URL
 
-#### Optional: Deploy discord addon
+After deploy is complete, you should get a "API" value, copy this into your bot's "INTERACTIONS ENDPOINT URL"
 
-Requires [AWS SAM CLI](https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/serverless-sam-cli-install.html) (or use CloudShell)
+You should now be able to use `/server` commands in your discord server
 
-```shell
-sam build && sam deploy --guided
-```
+## Lambda commands
+
+These are still available alongside the Discord bot options.
 
 ### Start
 
