@@ -13,6 +13,9 @@ Parameters:
     Type: String
     Default: earth
 
+  DiscordWebhook:
+    Type: String
+
   DiscordPublicKey:
     Type: String
 
@@ -231,6 +234,13 @@ Resources:
                     - unzip awscliv2.zip
                     - ./aws/install
                     - aws --version
+            # on server ready: notify
+            - Name: DISCORD_WEBHOOK
+              Value: !Ref DiscordWebhook
+            - Name: POST_SERVER_LISTENING_HOOK_MESSAGE
+              Value: Server is ready to roll
+            - Name: POST_SERVER_LISTENING_HOOK
+              Value: 'curl -sfSL -X POST -H "Content-Type: application/json" -d "{\"username\":\"Valheim\",\"content\":\"$POST_SERVER_LISTENING_HOOK_MESSAGE\"}" "$DISCORD_WEBHOOK"'
             # on startup: re-hydrate world
             - Name: PRE_SERVER_RUN_HOOK
               Value: !Sub aws s3 sync s3://${ Bucket }/worlds /config/worlds --delete
