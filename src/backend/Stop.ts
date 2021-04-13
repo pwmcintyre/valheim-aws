@@ -2,19 +2,23 @@ import { ECS } from 'aws-sdk'
 import { StandardLogger } from 'dexlog'
 
 export async function Stop (cluster: string, service: string, {
-    ecs = new ECS(),
-    logger = StandardLogger,
-} = {}): Promise<void> {
+        ecs = new ECS(),
+        logger = StandardLogger,
+    } = {}): Promise<void> {
 
-// start
-await ecs.updateService({ cluster, service, desiredCount: 0 }).promise()
-logger.debug("stopping", { cluster, service })
+    // get tasks
+    const tasks = await ecs.listTasks({ cluster, serviceName: service }).promise()
+        .then(res => res.taskArns || [])
 
-// wait until stable
-await ecs.waitFor("servicesInactive", { cluster, services: [service] }).promise()
-logger.debug("service inactive", { cluster, service })
+    // stop
+    await ecs.updateService({ cluster, service, desiredCount: 0 }).promise()
+    logger.debug("stopping", { cluster, service })
 
-// respond
-return
+    // wait until stopped
+    await ecs.waitFor("tasksStopped", { cluster, tasks }).promise()
+    logger.debug("service stopped", { cluster, service })
+
+    // respond
+    return
 
 }

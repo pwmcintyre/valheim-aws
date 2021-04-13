@@ -1,9 +1,10 @@
-import { ECS, EC2 } from 'aws-sdk'
+import { EC2Client, DescribeNetworkInterfacesCommand } from "@aws-sdk/client-ec2";
+import { ECSClient, ListTasksCommand, DescribeTasksCommand, waitForTasksRunning } from "@aws-sdk/client-ecs";
 import { StandardLogger } from 'dexlog'
 
 export async function Start (cluster: string, service: string, {
-        ecs = new ECS(),
-        ec2 = new EC2(),
+        ecs = new ECSClient({}),
+        ec2 = new EC2Client({}),
         logger = StandardLogger,
     } = {}) {
 

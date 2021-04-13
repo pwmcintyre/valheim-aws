@@ -1,11 +1,12 @@
-import { SecretsManager } from 'aws-sdk'
+import { SecretsManagerClient, GetSecretValueCommand } from "@aws-sdk/client-secrets-manager";
 
 export async function Start (SecretId: string, {
-        secrets = new SecretsManager(),
+        secrets = new SecretsManagerClient({}),
     } = {}) {
 
     // get password
-    const password = await secrets.getSecretValue({ SecretId }).promise()
+    const command = new GetSecretValueCommand({ SecretId })
+    const password = await secrets.send(command)
         .then(res => {
             const value = res.SecretString
             const blob = JSON.parse(value)
