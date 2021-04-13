@@ -1,6 +1,12 @@
 import { EC2Client, DescribeNetworkInterfacesCommand } from "@aws-sdk/client-ec2";
-import { ECSClient, ListTasksCommand, DescribeTasksCommand, waitForTasksRunning } from "@aws-sdk/client-ecs";
+import { ECSClient, ListTasksCommand, DescribeTasksCommand, waitForTasksRunning, UpdateServiceCommand } from "@aws-sdk/client-ecs";
 import { StandardLogger } from 'dexlog'
+
+export const ErrNotRunning = new Error("not running")
+
+async function sleep(ms:number){
+    return new Promise(resolve => setTimeout(resolve, ms))
+}
 
 export async function Start (cluster: string, service: string, {
         ecs = new ECSClient({}),
@@ -9,25 +15,32 @@ export async function Start (cluster: string, service: string, {
     } = {}) {
 
     // start
-    await ecs.updateService({ cluster, service, desiredCount: 1 }).promise()
+    await ecs.send(new UpdateServiceCommand({ cluster, service, desiredCount: 1 }))
     logger.debug("started", { cluster, service })
 
-    // wait until stable
-    await ecs.waitFor("servicesStable", { cluster, services: [service] }).promise()
-    logger.debug("service stable", { cluster, service })
+    // get tasks
+    let tasks: string[] = []
+    while ( tasks.length === 0 ) {
+        await sleep(1000)
+        tasks = await ecs
+            .send(new ListTasksCommand({ cluster, serviceName: service }))
+            .then( res => res.taskArns )
+    }
 
-    // get task
-    const task = await ecs.listTasks({ cluster, serviceName: service }).promise()
-        .then(res => res.taskArns[0])
+    // wait until task stable
+    await waitForTasksRunning({client: ecs, maxWaitTime: 120 }, { cluster, tasks })
 
-    // wait until task stable / get ENI
-    const eni = await ecs.waitFor("tasksRunning", { cluster, tasks: [task] }).promise()
-        .then(res => res.tasks[0].attachments[0].details.filter(a => a.name == "networkInterfaceId")[0].value)
-    logger.debug("task stable", { cluster, service, task })
+    // get ENI
+    const eni = await ecs.send(new DescribeTasksCommand({ cluster, tasks }))
+        .then( res => {
+            return res.tasks[0].attachments[0].details
+                .filter( a => a.name == "networkInterfaceId" )[0].value
+        })
 
     // get PublicIP
-    const ip = await ec2.describeNetworkInterfaces({ NetworkInterfaceIds: [eni] }).promise()
-        .then(res => res.NetworkInterfaces[0].Association.PublicIp)
+    const ip = await ec2
+        .send( new DescribeNetworkInterfacesCommand({ NetworkInterfaceIds: [eni] }) )
+        .then( res => res.NetworkInterfaces[0].Association.PublicIp )
 
     // respond
     return ip
