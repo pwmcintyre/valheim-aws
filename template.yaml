@@ -241,6 +241,10 @@ Resources:
               Value: Server is ready to roll
             - Name: POST_SERVER_LISTENING_HOOK
               Value: 'curl -sfSL -X POST -H "Content-Type: application/json" -d "{\"username\":\"Valheim\",\"content\":\"$POST_SERVER_LISTENING_HOOK_MESSAGE\"}" "$DISCORD_WEBHOOK"'
+            - Name: POST_SERVER_SHUTDOWN_HOOK_MESSAGE
+              Value: Server stopped
+            - Name: POST_SERVER_SHUTDOWN_HOOK
+              Value: 'curl -sfSL -X POST -H "Content-Type: application/json" -d "{\"username\":\"Valheim\",\"content\":\"$POST_SERVER_LISTENING_HOOK_MESSAGE\"}" "$DISCORD_WEBHOOK"'
             # on startup: re-hydrate world
             - Name: PRE_SERVER_RUN_HOOK
               Value: !Sub aws s3 sync s3://${ Bucket }/worlds /config/worlds --delete
@@ -443,8 +447,8 @@ Resources:
     Properties:
       FunctionName: !Sub ${ AWS::StackName }-api
       Runtime: nodejs14.x
-      CodeUri: .
-      Handler: ./dist/api/handler.handler
+      CodeUri: ./dist
+      Handler: ./api/handler.handler
       MemorySize: 256
       Timeout: 10
       Events:
@@ -470,8 +474,8 @@ Resources:
     Properties:
       FunctionName: !Sub ${ AWS::StackName }-commands
       Runtime: nodejs14.x
-      CodeUri: .
-      Handler: ./dist/commands/handler.handler
+      CodeUri: ./dist
+      Handler: ./commands/handler.handler
       MemorySize: 256
       Timeout: 300
       Policies:
