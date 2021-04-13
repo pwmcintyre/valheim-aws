@@ -7,3 +7,6 @@ test:
 
 deploy:
 	sam deploy --guided
+
+redeploy:
+	sam deploy
