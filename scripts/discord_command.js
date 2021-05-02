@@ -2,7 +2,7 @@ const fetch = require('node-fetch')
 async function main (api, config, token) {
 
     const body = JSON.stringify(config)
-    console.log("posting", {api, body})
+    console.log("posting", {api, body, token})
     const response = await fetch(api, {
         method: 'post',
         body,
@@ -22,7 +22,7 @@ const guild = process.env.DISCORD_GUILD
 const api = `https://discord.com/api/v8/applications/${ application_id }/guilds/${ guild }/commands`
 
 const config = {
-    "name": "server",
+    "name": "valheim",
     "description": "control your server",
     "options": [
         {
@@ -36,56 +36,11 @@ const config = {
             "type": 1
         },
         {
-            "name": "get",
-            "description": "Get details",
-            "type": 2, // 2 is type SUB_COMMAND_GROUP
-            "options": [
-                {
-                    "name": "ip",
-                    "description": "Get public IP",
-                    "type": 1
-                }
-            ]
+            "name": "describe",
+            "description": "Describe server",
+            "type": 1
         }
     ]
 }
-
-const config2 = {
-  "name": "penguin",
-  "description": "Send a GIF of a penguin",
-  "options": [
-      {
-          "name": "breed",
-          "description": "The breed of penguin",
-          "type": 3,
-          "required": true,
-          "choices": [
-              {
-                  "name": "Magellanic",
-                  "value": "magellanic"
-              },
-              {
-                  "name": "Emperor",
-                  "value": "emperor"
-              },
-              {
-                  "name": "Chinstrap",
-                  "value": "chinstrap"
-              },
-              {
-                  "name": "Gentoo",
-                  "value": "gentoo"
-              }
-          ]
-      },
-      {
-          "name": "stickers",
-          "description": "Whether to show only stickers",
-          "type": 5,
-          "required": false
-      }
-  ]
-}
-
 
 main(api, config, token)

@@ -32,7 +32,7 @@ export async function handler (event: any, lambdacontext: Context) {
     }
 
     // handle server commands
-    if ( body.type == 2 && body.data.name === 'server' ) {
+    if ( body.type == 2 && body.data.name === 'valheim' ) {
         logger.debug("invoking command", { body })
         await Invoke(body)
         return { "type": 5 } as any

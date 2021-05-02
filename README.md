@@ -23,6 +23,8 @@ Requires:
 - [NodeJS](https://nodejs.org/en/) (recommended: use [nvm](https://github.com/nvm-sh/nvm#installing-and-updating))
 - Discord
 
+Unfortunately, discord makes this order of magnitudes more complicated ... but way easier to manage!
+
 ### 1 - Create a webhook
 
 This is for the server to push outbound notifications.
@@ -30,13 +32,13 @@ This is for the server to push outbound notifications.
 1. Right click your discord service icon
 2. Click "Server Settings" > "Integrations"
 3. "View Webhooks" > "New Webhook"
-4. Click "Copy Webhook URL" (use this when deploying)
+4. Click "Copy Webhook URL" (enter this during deploy wizard)
 
 ### 2 - Create a bot
 
 1. Go to https://discord.com/developers/applications
 2. Click "New Application"
-3. Click "Copy" on the public key (use this when deploying)
+3. Click "Copy" on the public key (enter this during deploy wizard)
 
 ### 3 - Deploy
 
@@ -48,11 +50,29 @@ make build deploy
 
 Follow the prompts.
 
-### 4 - Set Discord bot interations URL
+### 4 - Configure Discord slash-commands
+
+1. Go to bot settings via https://discord.com/developers/applications
+2. Go to OAuth2 panel - click the following:
+    - applications.commands
+    - bot
+    -- Send Messages (in the bot section below)
+3. Copy the generated URL > enter into your browser (assuming you're logged into discord)
+4. Follow prompts to allow this bot to access your Discord server
+5. 
+
+```shell
+export DISCORD_TOKEN= enter bot token here
+export DISCORD_APPLICATION_ID= enter application id here
+export DISCORD_GUILD= enter your server ID here (right click server in discord app > copy ID)
+node ./scripts/discord_command.js
+```
+
+### 5 - Set Discord bot interations URL
 
 After deploy is complete, you should get a "API" value, copy this into your bot's "INTERACTIONS ENDPOINT URL"
 
-You should now be able to use `/server` commands in your discord server
+You should now be able to use `/valheim` commands in your discord server
 
 ## Lambda commands
 

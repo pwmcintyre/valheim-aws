@@ -60,6 +60,9 @@ function command (request: any /* TODO: APIRawMessage  */ ) {
         case 'stop':
             return commands.Stop(request)
 
+        case 'describe':
+            return commands.Get(request)
+
         case 'get':
             return commands.Get(request)
 
