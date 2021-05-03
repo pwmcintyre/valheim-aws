@@ -195,6 +195,8 @@ Resources:
               Value: !Ref Name
             - Name: SERVER_PUBLIC
               Value: 'true'
+            - Name: VALHEIM_PLUS
+              Value: 'true'
             - Name: UPDATE_INTERVAL
               Value: '900'
             - Name: BACKUPS_INTERVAL
@@ -221,7 +223,15 @@ Resources:
               Value: 'validate'
             - Name: STATUS_HTTP_PORT
               Value: !Ref StatusPort
-
+            - Name: BACKUPS_DIRECTORY
+              Value: /backups
+            # discord settings
+            - Name: DISCORD_WEBHOOK
+              Value: !Ref DiscordWebhook
+            - Name: POST_SERVER_LISTENING_HOOK_MESSAGE
+              Value: Server is ready to roll
+            - Name: POST_SERVER_SHUTDOWN_HOOK_MESSAGE
+              Value: Server stopped
             ## HOOKS
             # on cold-start: install pre-reqs
             - Name: POST_BOOTSTRAP_HOOK
@@ -234,26 +244,29 @@ Resources:
                     - unzip awscliv2.zip
                     - ./aws/install
                     - aws --version
-            # on server ready: notify
-            - Name: DISCORD_WEBHOOK
-              Value: !Ref DiscordWebhook
-            - Name: POST_SERVER_LISTENING_HOOK_MESSAGE
-              Value: Server is ready to roll
             - Name: POST_SERVER_LISTENING_HOOK
               Value: 'curl -sfSL -X POST -H "Content-Type: application/json" -d "{\"username\":\"Valheim\",\"content\":\"$POST_SERVER_LISTENING_HOOK_MESSAGE\"}" "$DISCORD_WEBHOOK"'
-            - Name: POST_SERVER_SHUTDOWN_HOOK_MESSAGE
-              Value: Server stopped
-            - Name: POST_SERVER_SHUTDOWN_HOOK
-              Value: 'curl -sfSL -X POST -H "Content-Type: application/json" -d "{\"username\":\"Valheim\",\"content\":\"$POST_SERVER_LISTENING_HOOK_MESSAGE\"}" "$DISCORD_WEBHOOK"'
-            # on startup: re-hydrate world
+            # before game startup
             - Name: PRE_SERVER_RUN_HOOK
-              Value: !Sub aws s3 sync s3://${ Bucket }/worlds /config/worlds --delete
-            # on shutdown: de-hydrate world
+              Value:
+                Fn::Join:
+                  - ' && '
+                  -
+                    # re-hydrate
+                    - !Sub aws s3 sync s3://${ Bucket }/config /config --delete
+            # after shutdown
             - Name: POST_SERVER_SHUTDOWN_HOOK
-              Value: !Sub aws s3 sync /config/worlds s3://${ Bucket }/worlds --delete
+              Value:
+                Fn::Join:
+                  - ' && '
+                  -
+                    # de-hydrate world
+                    - !Sub aws s3 sync /config s3://${ Bucket }/config --delete
+                    # notify
+                    - 'curl -sfSL -X POST -H "Content-Type: application/json" -d "{\"username\":\"Valheim\",\"content\":\"$POST_SERVER_SHUTDOWN_HOOK_MESSAGE\"}" "$DISCORD_WEBHOOK"'
             # on backup: sync to s3
             - Name: POST_BACKUP_HOOK
-              Value: !Sub aws s3 sync /config/backups s3://${ Bucket }/backups --delete
+              Value: !Sub aws s3 sync /backups s3://${ Bucket }/backups --delete
           Secrets:
             - Name: SERVER_PASS
               ValueFrom: !Sub "${ Secret }:password::"

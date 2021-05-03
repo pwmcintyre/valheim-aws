@@ -15,7 +15,7 @@ export async function handler (event: any, lambdacontext: Context) {
     logger.debug("command handler", { event })
 
     // handle server commands
-    if ( event.type == 2 && event.data.name === 'server' ) {
+    if ( event.type == 2 && event.data.name === 'valheim' ) {
         logger.info("cmd: server")
         const command_response = await command(event)
 

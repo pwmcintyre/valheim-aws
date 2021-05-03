@@ -59,7 +59,6 @@ Follow the prompts.
     -- Send Messages (in the bot section below)
 3. Copy the generated URL > enter into your browser (assuming you're logged into discord)
 4. Follow prompts to allow this bot to access your Discord server
-5. 
 
 ```shell
 export DISCORD_TOKEN= enter bot token here
