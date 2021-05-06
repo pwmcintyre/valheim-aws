@@ -1,29 +1,26 @@
 import test from 'ava'
-import * as dexlog from 'dexlog'
 import * as commands from './commands'
+import { UpdateMessageFn } from './handler'
 
-test('resolves with discord message with public ip address', async t => {
+test('should post update message with public ip address', async t => {
 
-    const logger = new dexlog.Logger(dexlog.LogLevel.DEBUG, t.log, undefined, [] )
+    let updates: string[] = []
+    const updater: UpdateMessageFn = (body: string) => {
+        updates.push(body)
+        return Promise.resolve()
+    }
 
     // setup
     const getIP = async () => "1.2.3.4"
     const fakeRequest = {}
 
     // run
-    const result = commands.Get(fakeRequest, { getIP, logger })
+    await commands.Get(fakeRequest, updater, { getIP })
 
     // assert
-    t.deepEqual( await result, {
-        data: {
-            allowed_mentions: {
-                parse: []
-            },
-            content: '1.2.3.4',
-            embeds: [],
-            tts: false
-        },
-        type: 4
-    })
+    t.deepEqual( updates, [
+        "fetching details ...",
+        "IP: 1.2.3.4",
+    ])
 
 })

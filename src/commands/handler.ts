@@ -14,60 +14,60 @@ export async function handler (event: any, lambdacontext: Context) {
     const logger = StandardLogger.with({ context })
     logger.debug("command handler", { event })
 
+    // setup updater func
+    const url = `https://discord.com/api/webhooks/${ event.application_id }/${ event.token }/messages/@original`
+    const updateFn = async function(message: any) {
+        const body = JSON.stringify({ "content": message })
+        return fetch(url, {
+            method: 'patch',
+            headers: { 'Content-Type': 'application/json' },
+            body,
+        }).then( result => {
+            logger.debug("interation updated", { result, url, body })
+        }).catch( error => {
+            logger.error("failed to update interation", { error, url, body })
+        })
+    }
+
     // handle server commands
     if ( event.type == 2 && event.data.name === 'valheim' ) {
         logger.info("cmd: server")
-        const command_response = await command(event)
-
-        // respond
-        // https://discord.com/developers/docs/interactions/slash-commands#followup-messages
-        // PATCH /webhooks/<application_id>/<interaction_token>/messages/@original to edit your initial response to an Interaction
-        // DELETE /webhooks/<application_id>/<interaction_token>/messages/@original to delete your initial response to an Interaction
-        // POST /webhooks/<application_id>/<interaction_token> to send a new followup message
-        // PATCH /webhooks/<application_id>/<interaction_token>/messages/<message_id> to edit a message sent with that token
-        // const url = `https://discord.com/api/v8/interactions/${ event.id }/${ event.token }/callback`
-        const url = `https://discord.com/api/webhooks/${ event.application_id }/${ event.token }/messages/@original`
-        const body = JSON.stringify(command_response)
         try {
-            const result = await fetch(url, {
-                method: 'patch',
-                body:    body,
-                headers: { 'Content-Type': 'application/json' },
-            })
-            logger.debug("success", { result, url, body, command_response })
-            logger.info("success", { result: result.json() })
+            await command(event, updateFn)
             return
         } catch (error: unknown) {
-            logger.error("failed to update interation", { error, url, body })
-            throw new Error("failed to update interation")
+            await updateFn(`command failure, try again later? 🤷‍♀️`)
+            throw error
         }
     }
 
-    logger.info("unknown")
     throw new Error("unknown command")
 
 }
 
-function command (request: any /* TODO: APIRawMessage  */ ) {
+export type UpdateMessageFn = (body: string) => Promise<void>;
+export type Command = (request: any, fn: UpdateMessageFn) => Promise<void>;
+export const ErrUnknownCommand = new Error("command not implemented")
+async function command (
+    request: any, // TODO: APIRawMessage
+    update: UpdateMessageFn,
+) {
 
     const subcommand = request.data.options[0].name
 
     switch (subcommand) {
 
         case 'start':
-            return commands.Start(request)
+            return commands.Start(request, update)
 
         case 'stop':
-            return commands.Stop(request)
+            return commands.Stop(request, update)
 
         case 'describe':
-            return commands.Get(request)
-
-        case 'get':
-            return commands.Get(request)
+            return commands.Get(request, update)
 
         default:
-            return { "content": "command not implemented" } as any // TODO: what is this type??
+            throw ErrUnknownCommand
 
     }
 
