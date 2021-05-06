@@ -10,9 +10,15 @@ export async function Stop (cluster: string, service: string, {
 await ecs.updateService({ cluster, service, desiredCount: 0 }).promise()
 logger.debug("stopping", { cluster, service })
 
+// get task
+const tasks = await ecs.listTasks({ cluster, serviceName: service }).promise()
+    .then(res => res.taskArns)
+
 // wait until stable
-await ecs.waitFor("servicesInactive", { cluster, services: [service] }).promise()
-logger.debug("service inactive", { cluster, service })
+if ( tasks.length > 0 ) {
+    await ecs.waitFor("tasksStopped", { cluster, tasks }).promise()
+}
+logger.debug("tasks stopped", { cluster, tasks })
 
 // respond
 return

@@ -11,16 +11,16 @@ test('should post update message with public ip address', async t => {
     }
 
     // setup
-    const stop = async () => { return }
+    const start = async () => "1.2.3.4"
     const fakeRequest = {}
 
     // run
-    await commands.Stop(fakeRequest, updater, { stop })
+    await commands.Start(fakeRequest, updater, { start })
 
     // assert
     t.deepEqual( updates, [
-        "stopping server ...",
-        "server stopped",
+        "starting server ...",
+        "IP: 1.2.3.4",
     ])
 
 })

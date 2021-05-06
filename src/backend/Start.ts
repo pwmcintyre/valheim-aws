@@ -16,13 +16,13 @@ export async function Start (cluster: string, service: string, {
     logger.debug("service stable", { cluster, service })
 
     // get task
-    const task = await ecs.listTasks({ cluster, serviceName: service }).promise()
-        .then(res => res.taskArns[0])
+    const tasks = await ecs.listTasks({ cluster, serviceName: service }).promise()
+        .then(res => res.taskArns)
 
     // wait until task stable / get ENI
-    const eni = await ecs.waitFor("tasksRunning", { cluster, tasks: [task] }).promise()
+    const eni = await ecs.waitFor("tasksRunning", { cluster, tasks }).promise()
         .then(res => res.tasks[0].attachments[0].details.filter(a => a.name == "networkInterfaceId")[0].value)
-    logger.debug("task stable", { cluster, service, task })
+    logger.debug("task stable", { cluster, service, tasks })
 
     // get PublicIP
     const ip = await ec2.describeNetworkInterfaces({ NetworkInterfaceIds: [eni] }).promise()
